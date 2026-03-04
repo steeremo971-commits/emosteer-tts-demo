@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeSRPA Demo &mdash; Chat</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f0f1a;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top bar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #1a1a2e;
+    background: #12121f;
+  }
+  .topbar .back {
+    color: #818cf8;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-right: 16px;
+  }
+  .topbar .back:hover { text-decoration: underline; }
+  .topbar .role-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .topbar .role-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #2a2a3e;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #555;
+  }
+  .topbar .role-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .topbar .role-name { font-weight: 600; font-size: 1.05rem; }
+  .topbar .role-source { font-size: 0.78rem; color: #666; }
+
+  /* Chat area */
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    max-width: 760px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .msg {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user { align-items: flex-end; }
+  .msg.agent { align-items: flex-start; }
+
+  .msg .bubble {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    line-height: 1.55;
+    font-size: 0.92rem;
+  }
+  .msg.user .bubble {
+    background: #6366f1;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .msg.agent .bubble {
+    background: #1e1e35;
+    border: 1px solid #2a2a3e;
+    border-bottom-left-radius: 4px;
+  }
+
+  .msg .emotion-tag {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .emo-angry   { background: rgba(239,68,68,0.2);  color: #f87171; }
+  .emo-happy   { background: rgba(250,204,21,0.2); color: #fbbf24; }
+  .emo-sad     { background: rgba(96,165,250,0.2); color: #60a5fa; }
+  .emo-surprise{ background: rgba(168,85,247,0.2); color: #a78bfa; }
+  .emo-neutral { background: rgba(156,163,175,0.2);color: #9ca3af; }
+
+  /* Audio player */
+  .audio-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .audio-row label {
+    font-size: 0.72rem;
+    color: #888;
+    min-width: 60px;
+  }
+  .audio-row audio {
+    height: 32px;
+    max-width: 280px;
+  }
+
+  /* Question selector */
+  .question-panel {
+    border-top: 1px solid #1a1a2e;
+    background: #12121f;
+    padding: 16px 24px 20px;
+  }
+  .question-panel .hint {
+    font-size: 0.82rem;
+    color: #666;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .questions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .q-btn {
+    background: #1a1a2e;
+    border: 1px solid #2a2a3e;
+    border-radius: 12px;
+    padding: 10px 16px;
+    color: #ccc;
+    font-size: 0.88rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+    line-height: 1.45;
+  }
+  .q-btn:hover {
+    border-color: #6366f1;
+    background: #1e1e35;
+    color: #fff;
+  }
+  .q-btn.used {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 12px;
+    color: #444;
+    font-size: 0.72rem;
+    border-top: 1px solid #1a1a2e;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="index.html">&larr; Back</a>
+  <div class="role-info">
+    <div class="role-avatar" id="topAvatar">?</div>
+    <div>
+      <div class="role-name" id="topName">Character</div>
+      <div class="role-source" id="topSource"></div>
+    </div>
+  </div>
+</div>
+
+<div class="chat-area" id="chatArea"></div>
+
+<div class="question-panel" id="questionPanel">
+  <div class="hint">Select a question to send</div>
+  <div class="questions" id="questionList"></div>
+</div>
+
+<div class="footer">
+  Anonymous submission &mdash; Interspeech 2026
+</div>
+
+<script>
+// ── Character metadata (must match index.html) ──
+const CHAR_META = {
+  "Jack Sparrow": { source: "Pirates of the Caribbean", avatar: "jack_sparrow.png" },
+  "Violet Weston": { source: "August: Osage County", avatar: "violet_weston.png" },
+  "Luna": { source: "My Little Pony", avatar: "luna.png" },
+  "Coriolanus": { source: "Coriolanus", avatar: "coriolanus.png" },
+  "Jordan Belfort": { source: "The Wolf of Wall Street", avatar: "jordan_belfort.png" },
+  "Freddy Krueger": { source: "A Nightmare on Elm Street", avatar: "freddy_krueger.png" },
+  "James Bond": { source: "James Bond Series", avatar: "james_bond.png" },
+  "Wade Wilson": { source: "Deadpool", avatar: "wade_wilson.png" },
+  "Paul Conroy": { source: "Buried", avatar: "paul_conroy.png" },
+  "Dr. Hannibal Lecter": { source: "The Silence of the Lambs", avatar: "hannibal_lecter.png" },
+};
+
+// ── Dialogue data per character ──
+const DIALOGUES = {
+  "Jack Sparrow": [
+    {
+      question: "Captain, Cutler Beckett just publicly called the Black Pearl a pathetic, rotting dinghy.",
+      response: "A rotting dinghy?! You go tell that pompous, powdered-wig weasel that the Black Pearl is the most magnificent vessel to ever touch the ocean!",
+      emotion: "angry",
+      audio_emo: "audio/Jack_Sparrow/angry1_angry_a2.0_s1.4.wav",
+      audio_neu: "audio/Jack_Sparrow/angry1_neutral.wav",
+    },
+    {
+      question: "Jack, the new crewmember just used the last barrel of rum to scrub the deck.",
+      response: "Used my rum to wash the bloody deck?! That is an absolutely unforgivable crime against humanity and a devastating insult to my very soul!",
+      emotion: "angry",
+      audio_emo: "audio/Jack_Sparrow/angry2_angry_a2.0_s1.4.wav",
+      audio_neu: "audio/Jack_Sparrow/angry2_neutral.wav",
+    },
+    {
+      question: "Captain, the curse is lifted! The Black Pearl is fully restored, and she's completely yours again.",
+      response: "Fully restored and absolutely beautiful! Oh, this is unquestionably the most glorious, spectacular day of my entirely miserable life!",
+      emotion: "happy",
+      audio_emo: "audio/Jack_Sparrow/happy1_happy_a1.5_s1.4.wav",
+      audio_neu: "audio/Jack_Sparrow/happy1_neutral.wav",
+    },
+    {
+      question: "Jack, the hidden cave is literally overflowing with mountains of gold and thousands of barrels of pristine Jamaican rum.",
+      response: "Mountains of gold and infinite rum?! Haha, this is absolutely brilliant, we are going to live like absolute kings!",
+      emotion: "happy",
+      audio_emo: "audio/Jack_Sparrow/happy2_happy_a1.5_s1.4.wav",
+      audio_neu: "audio/Jack_Sparrow/happy2_neutral.wav",
+    },
+    {
+      question: "Captain, I'm so sorry... we couldn't save her. The Black Pearl has sunk to the bottom of the ocean.",
+      response: "Gone...? My beautiful, magnificent ship... resting in the cold, dark deep... she was the only real freedom I ever knew.",
+      emotion: "sad",
+      audio_emo: "audio/Jack_Sparrow/sad1_sad_a0.5.wav",
+      audio_neu: "audio/Jack_Sparrow/sad1_neutral.wav",
+    },
+    {
+      question: "Jack, the Flying Dutchman is currently sailing completely upside down in the sky.",
+      response: "Upside down?! In the bloody sky?! Mate, are my eyes playing tricks on me, or is that ship actually falling upwards?!",
+      emotion: "surprise",
+      audio_emo: "audio/Jack_Sparrow/jacksurprise1.wav",
+      audio_neu: "audio/Jack_Sparrow/jacksurprisen1.wav",
+    },
+  ],
+};
+
+// ── Init ──
+const params = new URLSearchParams(window.location.search);
+const role = params.get("role") || "Jack Sparrow";
+const meta = CHAR_META[role] || {};
+const dialogues = DIALOGUES[role] || [];
+
+// Top bar
+document.getElementById("topName").textContent = role;
+document.getElementById("topSource").textContent = meta.source || "";
+if (meta.avatar) {
+  document.getElementById("topAvatar").innerHTML =
+    `<img src="avatars/${meta.avatar}" alt="${role}">`;
+}
+
+const chatArea = document.getElementById("chatArea");
+const questionList = document.getElementById("questionList");
+
+// Render question buttons
+dialogues.forEach((d, i) => {
+  const btn = document.createElement("button");
+  btn.className = "q-btn";
+  btn.textContent = d.question;
+  btn.onclick = () => sendQuestion(i, btn);
+  questionList.appendChild(btn);
+});
+
+function sendQuestion(idx, btn) {
+  const d = dialogues[idx];
+  btn.classList.add("used");
+
+  // User bubble
+  const userMsg = document.createElement("div");
+  userMsg.className = "msg user";
+  userMsg.innerHTML = `<div class="bubble">${escHtml(d.question)}</div>`;
+  chatArea.appendChild(userMsg);
+
+  // Agent bubble (with slight delay for feel)
+  setTimeout(() => {
+    const agentMsg = document.createElement("div");
+    agentMsg.className = "msg agent";
+
+    const emoClass = "emo-" + d.emotion;
+    agentMsg.innerHTML = `
+      <div class="bubble">
+        ${escHtml(d.response)}
+        <br><span class="emotion-tag ${emoClass}">${d.emotion}</span>
+      </div>
+      <div class="audio-row">
+        <label>EmoSteer:</label>
+        <audio controls preload="none" src="${d.audio_emo}"></audio>
+      </div>
+      <div class="audio-row">
+        <label>Neutral:</label>
+        <audio controls preload="none" src="${d.audio_neu}"></audio>
+      </div>
+    `;
+    chatArea.appendChild(agentMsg);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }, 300);
+
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+          .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+}
+</script>
+
+</body>
+</html>
