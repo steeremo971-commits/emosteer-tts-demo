@@ -107,6 +107,8 @@
   .emo-sad     { background: rgba(96,165,250,0.2); color: #60a5fa; }
   .emo-surprise{ background: rgba(168,85,247,0.2); color: #a78bfa; }
   .emo-neutral { background: rgba(156,163,175,0.2);color: #9ca3af; }
+  .emo-fear    { background: rgba(139,92,246,0.2); color: #c084fc; }
+  .emo-disgust { background: rgba(34,197,94,0.2);  color: #4ade80; }
 
   /* Audio player */
   .audio-row {
@@ -509,6 +511,20 @@ const DIALOGUES = {
       audio_emo: "audio/Coriolanus/surprise2_surprise_a2.5_s1.25.wav",
       audio_neu: "audio/Coriolanus/surprise2_neutral.wav",
     },
+    {
+      question: "The mob has breached the Senate gates. They are chanting your name and demanding your execution.",
+      response: "The mob is at the gates, and I can hear them chanting for my blood. Rome has turned against me, and even my own allies have fled into the shadows.",
+      emotion: "fear",
+      audio_emo: "audio/Coriolanus/fear1_fear_a2.0.wav",
+      audio_neu: "audio/Coriolanus/fear1_neutral.wav",
+    },
+    {
+      question: "The tribunes just handed your battle honors to the very plebeians who hid during the siege.",
+      response: "You fickle, crawling citizens! You change your loyalties with every wind that blows. Your cowardice sickens me beyond all measure.",
+      emotion: "disgust",
+      audio_emo: "audio/Coriolanus/disgust1_disgust_a2.0.wav",
+      audio_neu: "audio/Coriolanus/disgust1_neutral.wav",
+    },
   ],
   "Jordan Belfort": [
     {
@@ -552,6 +568,20 @@ const DIALOGUES = {
       emotion: "surprise",
       audio_emo: "audio/Jordan_Belfort/surprise2_surprise_a2.5_s1.25.wav",
       audio_neu: "audio/Jordan_Belfort/surprise2_neutral.wav",
+    },
+    {
+      question: "Jordan, the FBI just raided every office. Your lawyers are unreachable and all accounts are frozen.",
+      response: "The FBI is outside, my lawyers won't return my calls, and every single account is frozen. Everything I built is crumbling and there's no way to stop it.",
+      emotion: "fear",
+      audio_emo: "audio/Jordan_Belfort/fear1_fear_a2.0.wav",
+      audio_neu: "audio/Jordan_Belfort/fear1_neutral.wav",
+    },
+    {
+      question: "Your former employees are on TV right now, crying and saying you ruined their lives while laughing about it.",
+      response: "You people make me sick. You sit there judging me while you dream about having what I had. At least I had the guts to take what I wanted.",
+      emotion: "disgust",
+      audio_emo: "audio/Jordan_Belfort/disgust1_disgust_a2.0.wav",
+      audio_neu: "audio/Jordan_Belfort/disgust1_neutral.wav",
     },
   ],
   "Paul Conroy": [
