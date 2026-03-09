@@ -93,14 +93,18 @@
   }
 
   .msg .emotion-tag {
-    display: inline-block;
     margin-top: 6px;
+  }
+  .q-btn .emo-tag, .msg .emotion-tag {
+    display: inline-block;
     padding: 2px 10px;
     border-radius: 12px;
     font-size: 0.72rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    margin-right: 6px;
+    vertical-align: middle;
   }
   .emo-angry   { background: rgba(239,68,68,0.2);  color: #f87171; }
   .emo-happy   { background: rgba(250,204,21,0.2); color: #fbbf24; }
@@ -711,7 +715,8 @@ const questionList = document.getElementById("questionList");
 dialogues.forEach((d, i) => {
   const btn = document.createElement("button");
   btn.className = "q-btn";
-  btn.textContent = d.question;
+  const emoTag = `<span class="emo-tag emo-${d.emotion}">${d.emotion}</span> `;
+  btn.innerHTML = emoTag + escHtml(d.question);
   btn.onclick = () => sendQuestion(i, btn);
   questionList.appendChild(btn);
 });
